@@ -1,5 +1,7 @@
 package ru.netology
 
+import ru.netology.WallService.newPostId
+
 data class Likes(var likesCount: Int = 0)
 
 data class Post(
@@ -8,31 +10,20 @@ data class Post(
     val fromId: Int,
     val date: Int,
     val text: String,
-    val replyOwnerId: Int,
-    val replyPostId: Int,
-    val friendsOnly: Boolean,
+    val replyOwnerId: Int? = null,
+    val replyPostId: Int? = null,
+    val friendsOnly: Boolean = false,
     val likes: Likes,
-    val reposts: Int,
+    val reposts: Int = 0,
     val views: Int
     )
 
 object WallService {
     private var posts = emptyArray<Post>()
-    private var newPostId = 0
+    var newPostId = 0
 
     fun add(post: Post): Post {
-        posts += post.copy(id = ++newPostId,
-            ownerId = 18456,
-            fromId = 18456,
-            date = 1727635689,
-            text = "Hello world!",
-            replyOwnerId = 0,
-            replyPostId = 0,
-            friendsOnly = false,
-            likes = post.likes.copy(),
-            reposts = 0,
-            views = 0)
-
+        posts += post.copy(id = ++newPostId, likes = post.likes.copy())
         return posts.last()
     }
 
@@ -45,8 +36,23 @@ object WallService {
         }
         return false
     }
+
+    fun clear() {
+        posts = emptyArray()
+        newPostId = 0
+    }
 }
 
 fun main() {
-    println("Hello World!")
+    val likes = Likes(5)
+    val post = Post(id = 1,
+        ownerId = 18456,
+        fromId = 18456,
+        date = 1727635689,
+        text = "Hello world!",
+        likes = likes,
+        reposts = 0,
+        views = 0
+    )
+    WallService.add(post)
 }
