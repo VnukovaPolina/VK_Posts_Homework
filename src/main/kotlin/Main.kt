@@ -1,5 +1,7 @@
 package ru.netology
 
+import java.lang.System.currentTimeMillis
+
 interface Attachment {
     val type : String
 }
@@ -77,7 +79,7 @@ data class Post(
     val id: Int,
     val ownerId: Int,
     val fromId: Int,
-    val date: Int,
+    val date: Long,
     val text: String,
     val replyOwnerId: Int? = null,
     val replyPostId: Int? = null,
@@ -85,12 +87,26 @@ data class Post(
     val likes: Likes,
     val reposts: Int = 0,
     val views: Int,
+    val comments : Array<Comment> = emptyArray<Comment>(),
     val attachments: Array<Attachment> = emptyArray<Attachment>()
     )
 
+data class Comment(
+    val id: Int,
+    val fromId : Int,
+    val text : String,
+    val date : Long,
+    val replyToUser : Int ?= null,
+    val replyToComment : Int ?= null
+)
+
+class PostNotFoundException() : RuntimeException("Поста с данным ID не существует") {}
+
 object WallService {
-    private var posts = emptyArray<Post>()
+    internal var posts = emptyArray<Post>()
     var newPostId = 0
+    private var comments = emptyArray<Comment>()
+    var newCommentId = 0
 
     fun add(post: Post): Post {
         posts += post.copy(id = ++newPostId, likes = post.likes.copy())
@@ -107,6 +123,31 @@ object WallService {
         return false
     }
 
+    fun findById(postId : Int) : Post? {
+        for ((index, postsForSearch) in posts.withIndex()) {
+            if (posts[index].id == postId) {
+                return posts[index]
+            }
+        }
+        return null
+    }
+
+    fun createComment(postId: Int, comment: Comment) {
+        for ((index, postsForSearch) in posts.withIndex()) {
+            if (posts[index].id == postId) {
+                comments += comment.copy(id = ++newCommentId)
+                update(posts[index])
+            }
+            if (index == posts.lastIndex && posts[index].id != postId) {
+                throw PostNotFoundException()
+            }
+        }
+    }
+
+    fun printPosts() {
+        println(posts)
+    }
+
     fun clear() {
         posts = emptyArray()
         newPostId = 0
@@ -115,14 +156,23 @@ object WallService {
 
 fun main() {
     val likes = Likes(5)
-    val post = Post(id = 1,
+    val post = Post(
+        id = 1,
         ownerId = 18456,
         fromId = 18456,
-        date = 1727635689,
+        date = currentTimeMillis()/1000,
         text = "Hello world!",
         likes = likes,
         reposts = 0,
         views = 0
     )
+    val comment = Comment(
+        id = 1,
+        fromId = 23941,
+        text = "Отличная идея",
+        date = currentTimeMillis()/1000
+    )
     WallService.add(post)
+    WallService.createComment(1, comment)
+    WallService.printPosts()
 }

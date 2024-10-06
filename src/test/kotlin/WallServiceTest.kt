@@ -1,12 +1,12 @@
-import ru.netology.Likes
-import ru.netology.Post
-import ru.netology.WallService
+import ru.netology.*
+import ru.netology.WallService.add
+import ru.netology.WallService.createComment
+import ru.netology.WallService.findById
+import ru.netology.WallService.newCommentId
 import ru.netology.WallService.newPostId
+import ru.netology.WallService.posts
 import ru.netology.WallService.update
-import kotlin.test.Test
-import kotlin.test.BeforeTest
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class WallServiceTest {
 
@@ -16,7 +16,7 @@ class WallServiceTest {
     }
 
     @Test
-    fun addPost() {
+    fun addPostTest() {
         val post = Post(id = ++newPostId,
             ownerId = 18456,
             fromId = 18456,
@@ -60,5 +60,52 @@ class WallServiceTest {
 
         val isSuccessForExistingPost = update(post)
         assertFalse(isSuccessForExistingPost)
+    }
+
+    @Test
+    fun createCommentForExistingPost() {
+        val postID = 1
+        val post = Post(id = postID,
+            ownerId = 18456,
+            fromId = 18456,
+            date = 1727635689,
+            text = "Hello world!",
+            likes = Likes(0),
+            reposts = 0,
+            views = 0)
+        add(post)
+        val textForComment = "Comment for test"
+        val comment = Comment(
+            id = ++newCommentId,
+            fromId = 32188,
+            text = textForComment,
+            date = 1827635587
+        )
+        createComment(postID, comment)
+        val postWithComment = findById(postID)
+        val actualLastComment = postWithComment?.comments?.lastIndex
+        assertNotNull(actualLastComment)
+    }
+
+    @Test(expected = PostNotFoundException::class)
+    fun createCommentForNOTExistingPost() {
+        val postID = 100
+        val post = Post(id = postID,
+            ownerId = 18456,
+            fromId = 18456,
+            date = 1727635689,
+            text = "Hello world!",
+            likes = Likes(0),
+            reposts = 0,
+            views = 0)
+        add(post)
+        val textForComment = "Comment for test"
+        val comment = Comment(
+            id = ++newCommentId,
+            fromId = 32188,
+            text = textForComment,
+            date = 1827635587
+        )
+        createComment(postID, comment)
     }
 }
